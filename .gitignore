@@ -1,0 +1,17 @@
+# Build outputs
+build/
+dist/
+*.class
+*.jar
+!01_Original/jar/*.jar
+!02_Vulnerable/jar/*.jar
+!03_Secured/jar/*.jar
+
+# IDE
+.idea/
+*.iml
+nbproject/private/
+
+# OS
+.DS_Store
+Thumbs.db
