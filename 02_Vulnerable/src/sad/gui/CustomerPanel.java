@@ -124,7 +124,11 @@ public class CustomerPanel extends JPanel {
                     JOptionPane.showMessageDialog(this, "Loan request submitted");
                 }
             } catch (Exception ex) {
+                // INJECTED VULNERABILITY V5: Full error details shown to user
                 ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, 
+                    "SYSTEM ERROR - Debug Information:\n" + ex.getMessage(),
+                    "Internal Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         
@@ -189,9 +193,30 @@ public class CustomerPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(loansTable);
         panel.add(scrollPane, BorderLayout.CENTER);
         
+        // INJECTED VULNERABILITY V3: Customer can approve their own loans — no role check
+        JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton refreshBtn = new JButton("Refresh");
+        JButton approveBtn = new JButton("Approve My Loan");
         refreshBtn.addActionListener(e -> loadMyLoans());
-        panel.add(refreshBtn, BorderLayout.SOUTH);
+        approveBtn.addActionListener(e -> {
+            int row = loansTable.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Select a loan to approve");
+                return;
+            }
+            try {
+                // Customer approves their own loan — broken access control
+                List<sad.model.Loan> loans = dao.getUserLoans(currentUser.getId());
+                if (row < loans.size()) {
+                    dao.approveLoan(loans.get(row).getId(), currentUser.getId());
+                    JOptionPane.showMessageDialog(this, "Loan approved!");
+                    loadMyLoans();
+                }
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+        buttonPanel.add(refreshBtn);
+        buttonPanel.add(approveBtn);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
         
         loadMyLoans();
         
